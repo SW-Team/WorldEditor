@@ -1,0 +1,10 @@
+name: WorldEditor
+main: milk.worldeditor.WorldEditor
+version: "1.0"
+api: ["1.0.0"]
+
+load: STARTUP
+author: SW-Team
+description: Nukkit에서 윌드맵을 수정할 수 있게 해줍니다
+website: https://github.com/SW-Team/WorldEditor
+commands: []
