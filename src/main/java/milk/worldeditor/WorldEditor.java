@@ -339,7 +339,7 @@ public class WorldEditor extends PluginBase implements Listener{
         String callback = "";
         Object[] params = new Object[0];
         switch(cmd.getName()){
-            case "/clear":
+            case "/clearpos":
                 this.clearPos((Player) i);
                 return true;
             case "/pos1":

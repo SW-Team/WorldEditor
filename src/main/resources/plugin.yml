@@ -7,4 +7,38 @@ load: STARTUP
 author: SW-Team
 description: Nukkit에서 윌드맵을 수정할 수 있게 해줍니다
 website: https://github.com/SW-Team/WorldEditor
-commands: []
+commands:
+ /pos1:
+  usage: false
+  permission: worldedit.command.setpos1
+ /pos2:
+  usage: false
+  permission: worldedit.command.setpos2
+ /clearpos:
+  usage: false
+  permission: worldedit.command.clearpos
+ /set:
+  usage: false
+  permission: worldedit.command.setblock
+ /replace:
+  usage: false
+  permission: worldedit.command.replaceblock
+ /undo:
+  usage: false
+  permission: worldedit.command.undoblock
+ /redo:
+  usage: false
+  permission: worldedit.command.redoblock
+ /copy:
+  usage: false
+  permission: worldedit.command.copyblock
+ /paste:
+  usage: false
+  permission: worldedit.command.pasteblock
+ /cut:
+  usage: false
+  permission: worldedit.command.cutblock
+permissions:
+ worldedit.command.*:
+  default: op
+  description: false
