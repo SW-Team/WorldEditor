@@ -130,51 +130,47 @@ public class WorldEditor extends PluginBase implements Listener{
         }
     }
 
-    public void set(Block block, Vector3 pos, Level level){
-        if(pos instanceof Position && ((Position) pos).getLevel() != null){
-            level = ((Position) pos).getLevel();
-        }else if(block.getLevel() != null){
-            level = block.getLevel();
-        }else if(level == null){
-            return;
-        }
-
-        BlockEntity tile = level.getBlockEntity(pos);
+    public void set(Block block, Position pos){
+        BlockEntity tile = pos.getLevel().getBlockEntity(pos);
         if(tile != null){
             if(tile instanceof BlockEntityChest){
                 ((BlockEntityChest) tile).unpair();
             }
             tile.close();
         }
-        level.setBlock(pos, block, false, false);
+        pos.getLevel().setBlock(pos, block, false, false);
     }
 
-    public void setBlock(int sx, int sy, int sz, int ex, int ey, int ez, Block block, Player player){
+    public void setBlock(int[] xyz, Vector3 spos, Vector3 epos, Block block, Level level){
+        setBlock(xyz, spos, epos, block, level, null);
+    }
+
+    public void setBlock(int[] xyz, Vector3 spos, Vector3 epos, Block block, Level level, Player player){
         int count = 0;
-        int x = sx;
-        int y = sy;
-        int z = sz;
+        int x = xyz[0];
+        int y = xyz[1];
+        int z = xyz[2];
         while(true){
             if(count < this.getData("limit-block", 200)){
-                BaseFullChunk chunk = block.getLevel().getChunk(x >> 4, z >> 4, true);
+                BaseFullChunk chunk = level.getChunk(x >> 4, z >> 4, true);
                 if(chunk != null){
                     int id = chunk.getBlockId(x & 0x0f, y & 0x7f, z & 0x0f);
                     int data = chunk.getBlockData(x & 0x0f, y & 0x7f, z & 0x0f);
                     if(id != block.getId() || data != block.getDamage()){
                         count++;
-                        this.set(block, new Position(x, y, z, block.getLevel()), null);
+                        this.set(block, new Position(x, y, z, level));
                     }
                 }
 
-                if(z < ez){
+                if(z < epos.z){
                     z++;
                 }else{
-                    z = sz;
-                    if(y < ey){
+                    z = (int) spos.z;
+                    if(y < epos.y){
                         y++;
                     }else{
-                        y = sy;
-                        if(x < ex){
+                        y = (int) spos.y;
+                        if(x < epos.x){
                             x++;
                         }else{
                             break;
@@ -182,7 +178,7 @@ public class WorldEditor extends PluginBase implements Listener{
                     }
                 }
             }else{
-                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "setBlock", sx, new int[]{y, sy}, new int[]{z, sz}, ex, ey, ez, block, player), 1);
+                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "setBlock", new int[]{x, y, z}, spos, epos, block, level, player), 1);
                 return;
             }
         }
@@ -193,78 +189,36 @@ public class WorldEditor extends PluginBase implements Listener{
         this.debugInfo((player == null ? "" : player.getName() + "님이 ") + "블럭설정을 끝냈어요");
     }
 
-    public void setBlock(int sx, int[] syy, int[] szz, int ex, int ey, int ez, Block block, Player player){
-        int count = 0;
-        int x = sx;
-        int y = syy[0];
-        int sy = syy[1];
-        int z = szz[0];
-        int sz = szz[1];
-        while(true){
-            if(count < this.getData("limit-block", 200)){
-                BaseFullChunk chunk = block.getLevel().getChunk(x >> 4, z >> 4, true);
-                if(chunk != null){
-                    int id = chunk.getBlockId(x & 0x0f, y & 0x7f, z & 0x0f);
-                    int data = chunk.getBlockData(x & 0x0f, y & 0x7f, z & 0x0f);
-                    if(id != block.getId() || data != block.getDamage()){
-                        count++;
-                        this.set(block, new Position(x, y, z, block.getLevel()), null);
-                    }
-                }
-
-                if(z < ez){
-                    z++;
-                }else{
-                    z = sz;
-                    if(y < ey){
-                        y++;
-                    }else{
-                        y = sy;
-                        if(x < ex){
-                            x++;
-                        }else{
-                            break;
-                        }
-                    }
-                }
-            }else{
-                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "setBlock", sx, new int[]{y, sy}, new int[]{z, sz}, ex, ey, ez, block, player), 1);
-                return;
-            }
-        }
-
-        if(player != null){
-            player.sendMessage("[WorldEditor]모든 블럭을 설정했어요");
-        }
-        this.debugInfo((player == null ? "" : player.getName() + "님이 ") + "블럭설정을 끝냈어요");
+    public void replaceBlock(int[] xyz, Vector3 spos, Vector3 epos, Block block, Block target, Level level){
+        replaceBlock(xyz, spos, epos, block, target, level, null);
     }
 
-    public void replaceBlock(int sx, int sy, int sz, int ex, int ey, int ez, Block block, Block target, Player player){
+    public void replaceBlock(int[] xyz, Vector3 spos, Vector3 epos, Block block, Block target, Level level, Player player){
         int count = 0;
-        int x = sx;
-        int y = sy;
-        int z = sz;
+        int x = xyz[0];
+        int y = xyz[1];
+        int z = xyz[2];
         while(true){
             if(count < this.getData("limit-block", 200)){
-                BaseFullChunk chunk = block.getLevel().getChunk(x >> 4, z >> 4, true);
+                BaseFullChunk chunk = level.getChunk(x >> 4, z >> 4, true);
                 if(chunk != null){
                     int id = chunk.getBlockId(x & 0x0f, y & 0x7f, z & 0x0f);
                     int data = chunk.getBlockData(x & 0x0f, y & 0x7f, z & 0x0f);
                     if(id == block.getId() && data == block.getDamage()){
                         count++;
-                        this.set(target, new Vector3(x, y, z), null);
+                        this.set(target, new Position(x, y, z, level));
                     }
                 }
 
-                if(z < ez){
+                if(z < epos.z){
                     z++;
                 }else{
-                    z = sz;
-                    if(y < ey){
+                    z = (int) spos.z;
+                    if(y < epos.y){
                         y++;
                     }else{
-                        y = sy;
-                        if(x < ex){
+                        y = (int) spos.y;
+                        if(x < epos.x){
                             x++;
                         }else{
                             break;
@@ -272,53 +226,7 @@ public class WorldEditor extends PluginBase implements Listener{
                     }
                 }
             }else{
-                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "replaceBlock", sx, new int[]{y, sy}, new int[]{z, sz}, ex, ey, ez, block, target, player), 1);
-                return;
-            }
-        }
-
-        if(player != null){
-            player.sendMessage("[WorldEditor]모든 블럭을 설정했어요");
-        }
-        this.debugInfo((player == null ? "" : player.getName() + "님이 ") + "블럭변경을 끝냈어요");
-    }
-
-    public void replaceBlock(int sx, int[] syy, int[] szz, int ex, int ey, int ez, Block block, Block target, Player player){
-        int count = 0;
-        int x = sx;
-        int y = syy[0];
-        int sy = syy[1];
-        int z = szz[0];
-        int sz = szz[1];
-        while(true){
-            if(count < this.getData("limit-block", 200)){
-                BaseFullChunk chunk = block.getLevel().getChunk(x >> 4, z >> 4, true);
-                if(chunk != null){
-                    int id = chunk.getBlockId(x & 0x0f, y & 0x7f, z & 0x0f);
-                    int data = chunk.getBlockData(x & 0x0f, y & 0x7f, z & 0x0f);
-                    if(id == block.getId() && data == block.getDamage()){
-                        count++;
-                        this.set(target, new Vector3(x, y, z), null);
-                    }
-                }
-
-                if(z < ez){
-                    z++;
-                }else{
-                    z = sz;
-                    if(y < ey){
-                        y++;
-                    }else{
-                        y = sy;
-                        if(x < ex){
-                            x++;
-                        }else{
-                            break;
-                        }
-                    }
-                }
-            }else{
-                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "replaceBlock", sx, new int[]{y, sy}, new int[]{z, sz}, ex, ey, ez, block, target, player), 1);
+                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "replaceBlock", new int[]{x, y, z}, spos, epos, block, target, level, player), 1);
                 return;
             }
         }
@@ -362,15 +270,11 @@ public class WorldEditor extends PluginBase implements Listener{
                 String[] set = sub[0].split(":");
                 Vector3 pos1 = this.getPos((Player) i, 1);
                 Vector3 pos2 = this.getPos((Player) i, 2);
-                double endX = Math.max(pos1.x, pos2.x);
-                double endY = Math.max(pos1.y, pos2.y);
-                double endZ = Math.max(pos1.z, pos2.z);
-                double startX = Math.min(pos1.x, pos2.x);
-                double startY = Math.min(pos1.y, pos2.y);
-                double startZ = Math.min(pos1.z, pos2.z);
+                Vector3 spos = new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z));
+                Vector3 epos = new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z));
                 output += "블럭 설정을 시작했어요";
                 callback = "setBlock";
-                params = new Object[]{startX, startY, startZ, endX, endY, endZ, Block.get(Integer.parseInt(set[0]), set.length > 1 ? Integer.parseInt(set[1]) : 0, ((Player) i).getPosition()), i};
+                params = new Object[]{new int[]{(int) spos.x, (int) spos.y, (int) spos.z}, spos, epos, Block.get(Integer.parseInt(set[0]), set.length > 1 ? Integer.parseInt(set[1]) : 0), ((Player) i).getLevel(), i};
                 this.debugInfo(i.getName() + "님이 블럭설정을 시작했어요");
                 break;
             }
@@ -387,19 +291,15 @@ public class WorldEditor extends PluginBase implements Listener{
                 String[] set = sub[1].split(":");
                 Vector3 pos1 = this.getPos((Player) i, 1);
                 Vector3 pos2 = this.getPos((Player) i, 2);
-                double endX = Math.max(pos1.x, pos2.x);
-                double endY = Math.max(pos1.y, pos2.y);
-                double endZ = Math.max(pos1.z, pos2.z);
-                double startX = Math.min(pos1.x, pos2.x);
-                double startY = Math.min(pos1.y, pos2.y);
-                double startZ = Math.min(pos1.z, pos2.z);
+                Vector3 spos = new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z));
+                Vector3 epos = new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z));
                 output += "블럭 변경을 시작했어요";
                 callback = "replaceBlock";
-                params = new Object[]{startX, startY, startZ, endX, endY, endZ, Block.get(Integer.parseInt(get[0]), get.length > 1 ? Integer.parseInt(get[1]) : 0, ((Player) i).getPosition()), Block.get(Integer.parseInt(set[0]), set.length > 1 ? Integer.parseInt(set[1]) : 0, ((Player) i).getPosition()),i};
+                params = new Object[]{new int[]{(int) spos.x, (int) spos.y, (int) spos.z}, spos, epos, Block.get(Integer.parseInt(get[0]), get.length > 1 ? Integer.parseInt(get[1]) : 0), Block.get(Integer.parseInt(set[0]), set.length > 1 ? Integer.parseInt(set[1]) : 0), ((Player) i).getLevel(), i};
                 this.debugInfo(i.getName() + "님이 블럭변경을 시작했어요");
                 break;
             }
-            case "/undo":{
+            /*case "/undo":{
                 if(!this.canSetting((Player) i)){
                     output += "지역을 먼저 설정해주세요";
                     break;
@@ -415,7 +315,7 @@ public class WorldEditor extends PluginBase implements Listener{
                 double startZ = Math.min(pos1.z, pos2.z);
                 output += "블럭을 되돌리는 중입니다";
                 callback = "undoBlock";
-                params = new Object[]{startX, startY, startZ, endX, endY, endZ, i};
+                params = new Object[]{startX, startY, startZ, endX, endY, endZ, ((Player) i).getLevel(), i};
                 this.debugInfo(i.getName() + "님이 블럭을 복구하기 시작했어요");
                 break;
             }
@@ -435,7 +335,7 @@ public class WorldEditor extends PluginBase implements Listener{
                 double startZ = Math.min(pos1.z, pos2.z);
                 output += "블럭 설정을 시작했어요";
                 callback = "redoBlock";
-                params = new Object[]{startX, startY, startZ, endX, endY, endZ, i};
+                params = new Object[]{startX, startY, startZ, endX, endY, endZ, ((Player) i).getLevel(), i};
                 this.debugInfo(i.getName() + "님이 복구한 블럭을 되돌리기 시작했어요");
                 break;
             }
@@ -455,7 +355,7 @@ public class WorldEditor extends PluginBase implements Listener{
                 double startZ = Math.min(pos1.z, pos2.z);
                 output += "블럭 복사를 시작했어요";
                 callback = "copyBlock";
-                params = new Object[]{startX, startY, startZ, endX, endY, endZ, i};
+                params = new Object[]{startX, startY, startZ, endX, endY, endZ, ((Player) i).getLevel(), i};
                 this.debugInfo(i.getName() + "님이 블럭 복사를 시작했어요");
                 break;
             }
@@ -481,10 +381,10 @@ public class WorldEditor extends PluginBase implements Listener{
                 double startZ = Math.min(pos1.z, pos2.z);
                 output += "블럭 복사를 시작했어요";
                 callback = "cutBlock";
-                params = new Object[]{startX, startY, startZ, endX, endY, endZ, i};
+                params = new Object[]{startX, startY, startZ, endX, endY, endZ, ((Player) i).getLevel(), i};
                 this.debugInfo(i.getName() + "님이 블럭 복사를 시작했어요");
                 break;
-            }
+            }*/
         }
 
         if(!output.equals("[WorldEditor]")) i.sendMessage(output);
