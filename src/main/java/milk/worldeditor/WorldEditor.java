@@ -4,6 +4,8 @@ import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityChest;
+import cn.nukkit.command.Command;
+import cn.nukkit.command.CommandSender;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.block.BlockBreakEvent;
@@ -23,7 +25,7 @@ import java.util.LinkedHashMap;
 public class WorldEditor extends PluginBase implements Listener{
 
     public LinkedHashMap<String, Object> data;
-    public HashMap<String, Vector3[]> pos = new HashMap<>();
+    public HashMap<String, Position[]> pos = new HashMap<>();
 
     @Override
     public void onEnable(){
@@ -58,35 +60,45 @@ public class WorldEditor extends PluginBase implements Listener{
             this.getServer().getLogger().info(TextFormat.GOLD + "[WorldEditor]" + message);
         }
     }
-
-    public boolean setPos1(Player player, Vector3 pos){
-        if(!player.hasPermission("worldeditor.command.setpos1")){
-            return false;
-        }
-
-        Vector3[] posar = new Vector3[2];
+    
+    public boolean canSetting(Player player){
+        Position[] posar = new Position[2];
         if(this.pos.containsKey(player.getName())){
             posar = this.pos.get(player.getName());
         }
-        posar[0] = pos;
-        this.pos.put(player.getName(), posar);
-        player.sendMessage("[WorldEditor]Pos1 지점을 선택했어요 (" + pos.x + ", " + pos.y + ", " + pos.z + ")");
-        return true;
+        return posar[0] != null && posar[1] != null;
     }
 
-    public boolean setPos2(Player player, Vector3 pos){
-        if(!player.hasPermission("worldeditor.command.setpos2")){
-            return false;
+    public Position getPos(Player player, int index){
+        if(index > 2 || index < 1){
+            return null;
         }
 
-        Vector3[] posar = new Vector3[2];
+        Position[] posar = new Position[2];
         if(this.pos.containsKey(player.getName())){
             posar = this.pos.get(player.getName());
         }
-        posar[1] = pos;
+        return posar[index - 1];
+    }
+    
+    public boolean setPos(Player player, Position pos, int index){
+        if(index > 2 || index < 1 || !player.hasPermission("worldeditor.command.setpos" + index)){
+            return false;
+        }
+
+        Position[] posar = new Position[2];
+        if(this.pos.containsKey(player.getName())){
+            posar = this.pos.get(player.getName());
+        }
+        posar[index - 1] = pos;
         this.pos.put(player.getName(), posar);
-        player.sendMessage("[WorldEditor]Pos2 지점을 선택했어요 (" + pos.x + ", " + pos.y + ", " + pos.z + ")");
+        player.sendMessage(String.format("[WorldEditor]Pos%s 지점을 선택했어요 (%s, %s, %s)", index, pos.x, pos.y, pos.z));
         return true;
+    }
+    
+    public void clearPos(Player player){
+        this.pos.remove(player.getName());
+        player.sendMessage("[WorldEditor]Pos1, Pos2 지점을 초기화 했습니다");
     }
 
     @EventHandler
@@ -99,12 +111,12 @@ public class WorldEditor extends PluginBase implements Listener{
             && ev.getFace() != 255
             && ev.getAction() == PlayerInteractEvent.RIGHT_CLICK_BLOCK
         ){
-            ev.setCancelled(this.setPos2(player, block));
+            if(!this.setPos(player, block, 2)) ev.setCancelled();
         }else if(
             this.isTool(item)
             && ev.getAction() == PlayerInteractEvent.LEFT_CLICK_BLOCK
         ){
-            ev.setCancelled(this.setPos1(player, block));
+            if(!this.setPos(player, block, 1)) ev.setCancelled();
         }
     }
 
@@ -114,7 +126,7 @@ public class WorldEditor extends PluginBase implements Listener{
         Block block = ev.getBlock();
         Player player = ev.getPlayer();
         if(this.isTool(item)){
-            ev.setCancelled(this.setPos1(player, block));
+            ev.setCancelled(this.setPos(player, block, 1));
         }
     }
 
@@ -170,7 +182,7 @@ public class WorldEditor extends PluginBase implements Listener{
                     }
                 }
             }else{
-                //this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, ""), 1);
+                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "setBlock", sx, new int[]{y, sy}, new int[]{z, sz}, ex, ey, ez, block, player), 1);
                 return;
             }
         }
@@ -216,7 +228,7 @@ public class WorldEditor extends PluginBase implements Listener{
                     }
                 }
             }else{
-                //this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, ""), 1);
+                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "setBlock", sx, new int[]{y, sy}, new int[]{z, sz}, ex, ey, ez, block, player), 1);
                 return;
             }
         }
@@ -260,7 +272,7 @@ public class WorldEditor extends PluginBase implements Listener{
                     }
                 }
             }else{
-                //this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, ""), 1);
+                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "replaceBlock", sx, new int[]{y, sy}, new int[]{z, sz}, ex, ey, ez, block, target, player), 1);
                 return;
             }
         }
@@ -306,7 +318,7 @@ public class WorldEditor extends PluginBase implements Listener{
                     }
                 }
             }else{
-                //this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, ""), 1);
+                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "replaceBlock", sx, new int[]{y, sy}, new int[]{z, sz}, ex, ey, ez, block, target, player), 1);
                 return;
             }
         }
@@ -315,6 +327,175 @@ public class WorldEditor extends PluginBase implements Listener{
             player.sendMessage("[WorldEditor]모든 블럭을 설정했어요");
         }
         this.debugInfo((player == null ? "" : player.getName() + "님이 ") + "블럭변경을 끝냈어요");
+    }
+
+    public boolean onCommand(CommandSender i, Command cmd, String label, String[] sub){
+        if(!(i instanceof Player)){
+            return true;
+        }
+
+        String output = "[WorldEditor]";
+
+        String callback = "";
+        Object[] params = new Object[0];
+        switch(cmd.getName()){
+            case "/clear":
+                this.clearPos((Player) i);
+                return true;
+            case "/pos1":
+                this.setPos((Player) i, ((Player) i).floor(), 1);
+                return true;
+            case "/pos2":
+                this.setPos((Player) i, ((Player) i).floor(), 2);
+                return true;
+            case "/set":{
+                if(sub.length < 1){
+                    output += "사용법: //set <id[:meta]>";
+                    break;
+                }
+
+                if(!this.canSetting((Player) i)){
+                    output += "지역을 먼저 설정해주세요";
+                    break;
+                }
+
+                String[] set = sub[0].split(":");
+                Vector3 pos1 = this.getPos((Player) i, 1);
+                Vector3 pos2 = this.getPos((Player) i, 2);
+                double endX = Math.max(pos1.x, pos2.x);
+                double endY = Math.max(pos1.y, pos2.y);
+                double endZ = Math.max(pos1.z, pos2.z);
+                double startX = Math.min(pos1.x, pos2.x);
+                double startY = Math.min(pos1.y, pos2.y);
+                double startZ = Math.min(pos1.z, pos2.z);
+                output += "블럭 설정을 시작했어요";
+                callback = "setBlock";
+                params = new Object[]{startX, startY, startZ, endX, endY, endZ, Block.get(Integer.parseInt(set[0]), set.length > 1 ? Integer.parseInt(set[1]) : 0, ((Player) i).getPosition()), i};
+                this.debugInfo(i.getName() + "님이 블럭설정을 시작했어요");
+                break;
+            }
+            case "/replace":{
+                if(sub.length < 2){
+                    output += "사용법: //replace <(선택)id[:meta]> <(바꿀)id[:meta>]";
+                    break;
+                }
+                if(!this.canSetting((Player) i)){
+                    output += "지역을 먼저 설정해주세요";
+                    break;
+                }
+                String[] get = sub[0].split(":");
+                String[] set = sub[1].split(":");
+                Vector3 pos1 = this.getPos((Player) i, 1);
+                Vector3 pos2 = this.getPos((Player) i, 2);
+                double endX = Math.max(pos1.x, pos2.x);
+                double endY = Math.max(pos1.y, pos2.y);
+                double endZ = Math.max(pos1.z, pos2.z);
+                double startX = Math.min(pos1.x, pos2.x);
+                double startY = Math.min(pos1.y, pos2.y);
+                double startZ = Math.min(pos1.z, pos2.z);
+                output += "블럭 변경을 시작했어요";
+                callback = "replaceBlock";
+                params = new Object[]{startX, startY, startZ, endX, endY, endZ, Block.get(Integer.parseInt(get[0]), get.length > 1 ? Integer.parseInt(get[1]) : 0, ((Player) i).getPosition()), Block.get(Integer.parseInt(set[0]), set.length > 1 ? Integer.parseInt(set[1]) : 0, ((Player) i).getPosition()),i};
+                this.debugInfo(i.getName() + "님이 블럭변경을 시작했어요");
+                break;
+            }
+            case "/undo":{
+                if(!this.canSetting((Player) i)){
+                    output += "지역을 먼저 설정해주세요";
+                    break;
+                }
+
+                Vector3 pos1 = this.getPos((Player) i, 1);
+                Vector3 pos2 = this.getPos((Player) i, 2);
+                double endX = Math.max(pos1.x, pos2.x);
+                double endY = Math.max(pos1.y, pos2.y);
+                double endZ = Math.max(pos1.z, pos2.z);
+                double startX = Math.min(pos1.x, pos2.x);
+                double startY = Math.min(pos1.y, pos2.y);
+                double startZ = Math.min(pos1.z, pos2.z);
+                output += "블럭을 되돌리는 중입니다";
+                callback = "undoBlock";
+                params = new Object[]{startX, startY, startZ, endX, endY, endZ, i};
+                this.debugInfo(i.getName() + "님이 블럭을 복구하기 시작했어요");
+                break;
+            }
+            case "/redo":{
+                if(!this.canSetting((Player) i)){
+                    output += "지역을 먼저 설정해주세요";
+                    break;
+                }
+
+                Vector3 pos1 = this.getPos((Player) i, 1);
+                Vector3 pos2 = this.getPos((Player) i, 2);
+                double endX = Math.max(pos1.x, pos2.x);
+                double endY = Math.max(pos1.y, pos2.y);
+                double endZ = Math.max(pos1.z, pos2.z);
+                double startX = Math.min(pos1.x, pos2.x);
+                double startY = Math.min(pos1.y, pos2.y);
+                double startZ = Math.min(pos1.z, pos2.z);
+                output += "블럭 설정을 시작했어요";
+                callback = "redoBlock";
+                params = new Object[]{startX, startY, startZ, endX, endY, endZ, i};
+                this.debugInfo(i.getName() + "님이 복구한 블럭을 되돌리기 시작했어요");
+                break;
+            }
+            case "/copy":{
+                if(!this.canSetting((Player) i)){
+                    output += "지역을 먼저 설정해주세요";
+                    break;
+                }
+
+                Vector3 pos1 = this.getPos((Player) i, 1);
+                Vector3 pos2 = this.getPos((Player) i, 2);
+                double endX = Math.max(pos1.x, pos2.x);
+                double endY = Math.max(pos1.y, pos2.y);
+                double endZ = Math.max(pos1.z, pos2.z);
+                double startX = Math.min(pos1.x, pos2.x);
+                double startY = Math.min(pos1.y, pos2.y);
+                double startZ = Math.min(pos1.z, pos2.z);
+                output += "블럭 복사를 시작했어요";
+                callback = "copyBlock";
+                params = new Object[]{startX, startY, startZ, endX, endY, endZ, i};
+                this.debugInfo(i.getName() + "님이 블럭 복사를 시작했어요");
+                break;
+            }
+            case "/paste":
+                output += "블럭 붙여넣기를 시작했어요";
+                callback = "pasteBlock";
+                params = new Object[]{((Player) i).floor(), i};
+                this.debugInfo(i.getName() + "님이 블럭 붙여넣기를 시작했어요");
+                break;
+            case "/cut":{
+                if(!this.canSetting((Player) i)){
+                    output += "지역을 먼저 설정해주세요";
+                    break;
+                }
+
+                Vector3 pos1 = this.getPos((Player) i, 1);
+                Vector3 pos2 = this.getPos((Player) i, 2);
+                double endX = Math.max(pos1.x, pos2.x);
+                double endY = Math.max(pos1.y, pos2.y);
+                double endZ = Math.max(pos1.z, pos2.z);
+                double startX = Math.min(pos1.x, pos2.x);
+                double startY = Math.min(pos1.y, pos2.y);
+                double startZ = Math.min(pos1.z, pos2.z);
+                output += "블럭 복사를 시작했어요";
+                callback = "cutBlock";
+                params = new Object[]{startX, startY, startZ, endX, endY, endZ, i};
+                this.debugInfo(i.getName() + "님이 블럭 복사를 시작했어요");
+                break;
+            }
+        }
+
+        if(!output.equals("[WorldEditor]")) i.sendMessage(output);
+        try{
+            Class[] clazz = new Class[params.length];
+            for(int a = 0; a < params.length; a++){
+                clazz[a] = params[a].getClass();
+            }
+            this.getClass().getMethod(callback, clazz).invoke(this, params);
+        }catch(Exception e){}
+        return true;
     }
 
 }
