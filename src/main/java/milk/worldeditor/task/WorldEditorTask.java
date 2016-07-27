@@ -1,13 +1,15 @@
 package milk.worldeditor.task;
 
+import milk.worldeditor.WorldEditor;
+
 public class WorldEditorTask implements Runnable{
 
-    private final Object object;
+    private final WorldEditor object;
 
     private final String method;
     private final Object[] args;
 
-    public WorldEditorTask(Object object, String method, Object ...args){
+    public WorldEditorTask(WorldEditor object, String method, Object ...args){
         this.object = object;
         this.method = method;
         this.args = args;
@@ -20,7 +22,7 @@ public class WorldEditorTask implements Runnable{
             for(int a = 0; a < args.length; a++){
                 classes[a] = args[a].getClass();
             }
-            this.object.getClass().getMethod(this.method, classes).invoke(this.object, this.args);
+            object.getClass().getMethod(method, classes).invoke(object, args);
         }catch(Exception e){}
     }
 
