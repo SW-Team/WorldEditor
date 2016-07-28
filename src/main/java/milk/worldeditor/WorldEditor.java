@@ -32,6 +32,10 @@ public class WorldEditor extends PluginBase implements Listener{
     public HashMap<String, Position[]> pos = new HashMap<>();
     public HashMap<String, ArrayList<Block>> undo = new HashMap<>();
 
+    public static double length(double x, double y, double z){
+        return (x * x) + (y * y) + (z * z);
+    }
+
     @Override
     public void onEnable(){
         this.saveDefaultConfig();
@@ -326,6 +330,57 @@ public class WorldEditor extends PluginBase implements Listener{
         this.debugInfo((player == null ? "" : player.getName() + "님이 ") + "블럭 복구를 끝냈어요");
     }
 
+    public void sphereBlock(Position pos, Block block, double radius, boolean filled){
+        radius += 0.5;
+        double invRadius = 1 / radius;
+        int ceilRadius = (int) Math.ceil(radius);
+
+        double nextXn = 0;
+        boolean breakX = false;
+        for(int x = 0; x <= ceilRadius && !breakX; ++x){
+            double xn = nextXn;
+            nextXn = (x + 1) * invRadius;
+            double nextYn = 0;
+            boolean breakY = false;
+            for(int y = 0; y <= ceilRadius && !breakY; ++y){
+                double yn = nextYn;
+                nextYn = (y + 1) * invRadius;
+                double nextZn = 0;
+                boolean breakZ = false;
+                for(int z = 0; z <= ceilRadius; ++z){
+                    double zn = nextZn;
+                    nextZn = (z + 1) * invRadius;
+                    double distanceSq = WorldEditor.length(xn, yn, zn);
+                    if(distanceSq > 1){
+                        if(z == 0){
+                            if(y == 0){
+                                breakX = true;
+                                breakY = true;
+                                break;
+                            }
+                            breakY = true;
+                            break;
+                        }
+                        break;
+                    }
+
+                    if(!filled && WorldEditor.length(nextXn, yn, zn) <= 1 && WorldEditor.length(xn, nextYn, zn) <= 1 && WorldEditor.length(xn, yn, nextZn) <= 1){
+                        continue;
+                    }
+
+                    this.set(block, pos.add(x, y, z));
+                    this.set(block, pos.add(-x, y, z));
+                    this.set(block, pos.add(x, -y, z));
+                    this.set(block, pos.add(x, y, -z));
+                    this.set(block, pos.add(-x, -y, z));
+                    this.set(block, pos.add(-x, y, -z));
+                    this.set(block, pos.add(x, -y, -z));
+                    this.set(block, pos.add(-x, -y, -z));
+                }
+            }
+        }
+    }
+
     public boolean onCommand(CommandSender i, Command cmd, String label, String[] sub){
         if(!(i instanceof Player)){
             return true;
@@ -347,10 +402,9 @@ public class WorldEditor extends PluginBase implements Listener{
                 return true;
             case "/set":{
                 if(sub.length < 1){
-                    output += "사용법: //set <id[:meta]>";
+                    output += "사용법: /%s <id[:meta]>";
                     break;
                 }
-
                 if(!this.canSetting((Player) i)){
                     output += "지역을 설정하지 않았거나 설정한 지역이 서로 달라요";
                     break;
@@ -367,13 +421,14 @@ public class WorldEditor extends PluginBase implements Listener{
             }
             case "/replace":{
                 if(sub.length < 2){
-                    output += "사용법: //replace <(선택)id[:meta]> <(바꿀)id[:meta>]";
+                    output += "사용법: /%s <(선택)id[:meta]> <(바꿀)id[:meta>]";
                     break;
                 }
                 if(!this.canSetting((Player) i)){
                     output += "지역을 설정하지 않았거나 설정한 지역이 서로 달라요";
                     break;
                 }
+
                 String[] get = sub[0].split(":");
                 String[] set = sub[1].split(":");
                 Position pos1 = this.getPos((Player) i, 1);
@@ -398,6 +453,31 @@ public class WorldEditor extends PluginBase implements Listener{
                 this.debugInfo(i.getName() + "님이 블럭을 복구하기 시작했어요");
                 break;
             }
+            case "/sphere":
+            case "/hsphere":
+                if(sub.length < 2){
+                    output += "사용법: /%s <id[:meta]> <radius>";
+                    break;
+                }
+
+                Position pos = this.getPos((Player) i, 1);
+                if(!pos.equals(this.getPos((Player) i, 2))){
+                    output += "구의 중심에 pos1과 pos2를 맞춰 주세요";
+                    break;
+                }
+
+                try{
+                    String[] kkk = sub[0].split(":");
+                    Block block = Block.get(Integer.parseInt(kkk[0]), Integer.parseInt(kkk[1]));
+                    int raidus = Integer.parseInt(sub[1]);
+
+                    output += "구를 만들기 시작했어요";
+                    callback = "sphereBlock";
+                    params = new Object[]{pos, block, raidus, !cmd.getName().equals("/hsphere")};
+                }catch(Exception e){
+                    output += "사용법: /%s <id[:meta]> <radius>";
+                }
+                break;
             /*case "/redo":{
                 if(!this.canSetting((Player) i)){
                     output += "지역을 설정하지 않았거나 설정한 지역이 서로 달라요";
@@ -466,14 +546,20 @@ public class WorldEditor extends PluginBase implements Listener{
             }*/
         }
 
-        if(!output.equals("[WorldEditor]")) i.sendMessage(output);
-        try{
-            Class[] clazz = new Class[params.length];
-            for(int a = 0; a < params.length; a++){
-                clazz[a] = params[a].getClass();
+        if(!output.equals("[WorldEditor]")){
+            i.sendMessage(String.format(output, label));
+        }
+
+        if(params.length > 0 && !callback.isEmpty()){
+            try{
+                Class[] clazz = new Class[params.length];
+                for(int a = 0; a < params.length; a++){
+                    clazz[a] = params[a].getClass();
+                }
+                this.getClass().getMethod(callback, clazz).invoke(this, params);
+            } catch(Exception e){
             }
-            this.getClass().getMethod(callback, clazz).invoke(this, params);
-        }catch(Exception e){}
+        }
         return true;
     }
 
