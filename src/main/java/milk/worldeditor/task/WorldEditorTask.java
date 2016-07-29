@@ -4,13 +4,12 @@ import milk.worldeditor.WorldEditor;
 
 public class WorldEditorTask implements Runnable{
 
-    private final WorldEditor object;
+    public static WorldEditor object;
 
     private final String method;
     private final Object[] args;
 
-    public WorldEditorTask(WorldEditor object, String method, Object ...args){
-        this.object = object;
+    public WorldEditorTask(String method, Object ...args){
         this.method = method;
         this.args = args;
     }

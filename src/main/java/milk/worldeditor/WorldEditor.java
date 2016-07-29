@@ -39,6 +39,7 @@ public class WorldEditor extends PluginBase implements Listener{
     @Override
     public void onEnable(){
         this.saveDefaultConfig();
+        WorldEditorTask.object = this;
         this.data = (LinkedHashMap<String, Object>) this.getConfig().getAll();
         this.getServer().getPluginManager().registerEvents(this, this);
         this.getServer().getLogger().info(TextFormat.GOLD + "[WorldEditor]Plugin has been enabled");
@@ -218,7 +219,7 @@ public class WorldEditor extends PluginBase implements Listener{
                     }
                 }
             }else{
-                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "setBlock", new int[]{x, y, z}, spos, epos, block, level, player), 1);
+                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask("setBlock", new int[]{x, y, z}, spos, epos, block, level, player), 1);
                 return;
             }
         }
@@ -272,7 +273,7 @@ public class WorldEditor extends PluginBase implements Listener{
                     }
                 }
             }else{
-                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "replaceBlock", new int[]{x, y, z}, spos, epos, block, target, level, player), 1);
+                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask("replaceBlock", new int[]{x, y, z}, spos, epos, block, target, level, player), 1);
                 return;
             }
         }
@@ -319,7 +320,7 @@ public class WorldEditor extends PluginBase implements Listener{
                     }
                 }
             }else{
-                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask(this, "setBlock", new int[]{x, y, z}, spos, epos, level, player), 1);
+                this.getServer().getScheduler().scheduleDelayedTask(new WorldEditorTask("undoBlock", new int[]{x, y, z}, spos, epos, level, player), 1);
                 return;
             }
         }
