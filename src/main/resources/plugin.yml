@@ -9,34 +9,34 @@ description: Nukkit에서 윌드맵을 수정할 수 있게 해줍니다
 website: https://github.com/SW-Team/WorldEditor
 commands:
  /pos1:
-  usage: false
+  usage: ""
   permission: worldedit.command.setpos1
  /pos2:
-  usage: false
+  usage: ""
   permission: worldedit.command.setpos2
  /clearpos:
-  usage: false
+  usage: ""
   permission: worldedit.command.clearpos
  /set:
-  usage: false
+  usage: ""
   permission: worldedit.command.setblock
  /replace:
-  usage: false
+  usage: ""
   permission: worldedit.command.replaceblock
  /undo:
-  usage: false
+  usage: ""
   permission: worldedit.command.undoblock
  /redo:
-  usage: false
+  usage: ""
   permission: worldedit.command.redoblock
  /copy:
-  usage: false
+  usage: ""
   permission: worldedit.command.copyblock
  /paste:
-  usage: false
+  usage: ""
   permission: worldedit.command.pasteblock
  /cut:
-  usage: false
+  usage: ""
   permission: worldedit.command.cutblock
 permissions:
  worldedit.command.*:
