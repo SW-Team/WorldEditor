@@ -10,35 +10,35 @@ website: https://github.com/SW-Team/WorldEditor
 commands:
  /pos1:
   usage: ""
-  permission: worldedit.command.setpos1
+  permission: worldeditor.command.setpos1
  /pos2:
   usage: ""
-  permission: worldedit.command.setpos2
+  permission: worldeditor.command.setpos2
  /clearpos:
   usage: ""
-  permission: worldedit.command.clearpos
+  permission: worldeditor.command.clearpos
  /set:
   usage: ""
-  permission: worldedit.command.setblock
+  permission: worldeditor.command.setblock
  /replace:
   usage: ""
-  permission: worldedit.command.replaceblock
+  permission: worldeditor.command.replaceblock
  /undo:
   usage: ""
-  permission: worldedit.command.undoblock
+  permission: worldeditor.command.undoblock
  /redo:
   usage: ""
-  permission: worldedit.command.redoblock
+  permission: worldeditor.command.redoblock
  /copy:
   usage: ""
-  permission: worldedit.command.copyblock
+  permission: worldeditor.command.copyblock
  /paste:
   usage: ""
-  permission: worldedit.command.pasteblock
+  permission: worldeditor.command.pasteblock
  /cut:
   usage: ""
-  permission: worldedit.command.cutblock
+  permission: worldeditor.command.cutblock
 permissions:
- worldedit.command.*:
+ worldeditor.command.*:
   default: op
-  description: false
+  description: ""
