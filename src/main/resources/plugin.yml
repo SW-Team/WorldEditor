@@ -23,6 +23,9 @@ commands:
  /replace:
   usage: ""
   permission: worldeditor.command.replaceblock
+ /sphere:
+  usage: ""
+  permission: worldeditor.command.sphereblock
  /undo:
   usage: ""
   permission: worldeditor.command.undoblock
