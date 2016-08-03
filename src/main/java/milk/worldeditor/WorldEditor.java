@@ -121,12 +121,12 @@ public class WorldEditor extends PluginBase implements Listener{
             && ev.getFace() != 255
             && ev.getAction() == PlayerInteractEvent.RIGHT_CLICK_BLOCK
         ){
-            if(!this.setPos(player, block, 2)) ev.setCancelled();
+            if(this.setPos(player, block, 2)) ev.setCancelled();
         }else if(
             this.isTool(item)
             && ev.getAction() == PlayerInteractEvent.LEFT_CLICK_BLOCK
         ){
-            if(!this.setPos(player, block, 1)) ev.setCancelled();
+            if(this.setPos(player, block, 1)) ev.setCancelled();
         }
     }
 
