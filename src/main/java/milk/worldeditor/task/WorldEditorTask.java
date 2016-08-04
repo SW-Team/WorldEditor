@@ -1,5 +1,8 @@
 package milk.worldeditor.task;
 
+import cn.nukkit.Player;
+import cn.nukkit.block.Block;
+import cn.nukkit.item.Item;
 import milk.worldeditor.WorldEditor;
 
 public class WorldEditorTask implements Runnable{
@@ -19,10 +22,20 @@ public class WorldEditorTask implements Runnable{
         try{
             Class[] classes = new Class[args.length];
             for(int a = 0; a < args.length; a++){
-                classes[a] = args[a].getClass();
+                Class clazz = args[a].getClass();
+                if(args[a] instanceof Block){
+                    clazz = Block.class;
+                }else if(args[a] instanceof Item){
+                    clazz = Item.class;
+                }else if(args[a] instanceof Player){
+                    clazz = Player.class;
+                }
+                classes[a] = clazz;
             }
             object.getClass().getMethod(method, classes).invoke(object, args);
-        }catch(Exception e){}
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
 }

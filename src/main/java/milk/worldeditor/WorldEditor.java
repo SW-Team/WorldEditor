@@ -552,14 +552,7 @@ public class WorldEditor extends PluginBase implements Listener{
         }
 
         if(params.length > 0 && !callback.isEmpty()){
-            try{
-                Class[] clazz = new Class[params.length];
-                for(int a = 0; a < params.length; a++){
-                    clazz[a] = params[a].getClass();
-                }
-                this.getClass().getMethod(callback, clazz).invoke(this, params);
-            } catch(Exception e){
-            }
+            this.getServer().getScheduler().scheduleTask(new WorldEditorTask(callback, params));
         }
         return true;
     }
