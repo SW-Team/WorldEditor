@@ -532,7 +532,11 @@ public class WorldEditor extends PluginBase implements Listener{
                 Position pos2 = this.getPos((Player) i, 2);
                 output += "블럭 설정을 시작했어요";
                 callback = "setBlock";
-                params = new Object[]{new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z)), new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z)), Block.get(Integer.parseInt(set[0]), set.length > 1 ? Integer.parseInt(set[1]) : 0), pos1.level, i};
+                params = new Object[]{
+                    new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z)),
+                    new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z)),
+                    Block.get(Integer.parseInt(set[0]), set.length > 1 ? Integer.parseInt(set[1]) : 0), pos1.level, i
+                };
                 this.debugInfo(i.getName() + "님이 블럭설정을 시작했어요");
                 break;
             }
@@ -552,7 +556,12 @@ public class WorldEditor extends PluginBase implements Listener{
                 Position pos2 = this.getPos((Player) i, 2);
                 output += "블럭 변경을 시작했어요";
                 callback = "replaceBlock";
-                params = new Object[]{new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z)), new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z)), Block.get(Integer.parseInt(get[0]), get.length > 1 ? Integer.parseInt(get[1]) : 0), Block.get(Integer.parseInt(set[0]), set.length > 1 ? Integer.parseInt(set[1]) : 0), pos1.level, i};
+                params = new Object[]{
+                    new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z)),
+                    new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z)),
+                    Block.get(Integer.parseInt(get[0]), get.length > 1 ? Integer.parseInt(get[1]) : 0),
+                    Block.get(Integer.parseInt(set[0]), set.length > 1 ? Integer.parseInt(set[1]) : 0), pos1.level, i
+                };
                 this.debugInfo(i.getName() + "님이 블럭변경을 시작했어요");
                 break;
             }
@@ -566,7 +575,10 @@ public class WorldEditor extends PluginBase implements Listener{
                 Position pos2 = this.getPos((Player) i, 2);
                 output += "블럭을 되돌리는 중입니다";
                 callback = "undoBlock";
-                params = new Object[]{new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z)), new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z)), pos1.level, i};
+                params = new Object[]{
+                    new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z)),
+                    new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z)), pos1.level, i
+                };
                 this.debugInfo(i.getName() + "님이 블럭을 복구하기 시작했어요");
                 break;
             }
@@ -605,7 +617,10 @@ public class WorldEditor extends PluginBase implements Listener{
                 Vector3 pos2 = this.getPos((Player) i, 2);
                 output += "블럭 복사를 시작했어요";
                 callback = "copyBlock";
-                params = new Object[]{new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z)), new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z)), ((Player) i).getLevel(), i};
+                params = new Object[]{
+                    new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z)),
+                    new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z)), ((Player) i).getLevel(), i
+                };
                 this.debugInfo(i.getName() + "님이 블럭 복사를 시작했어요");
                 break;
             }
@@ -619,7 +634,10 @@ public class WorldEditor extends PluginBase implements Listener{
                 Vector3 pos2 = this.getPos((Player) i, 2);
                 output += "블럭 복사를 시작했어요";
                 callback = "cutBlock";
-                params = new Object[]{new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z)), new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z)), ((Player) i).getLevel(), i};
+                params = new Object[]{
+                    new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z)),
+                    new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z)), ((Player) i).getLevel(), i
+                };
                 this.debugInfo(i.getName() + "님이 블럭 복사를 시작했어요");
                 break;
             }
