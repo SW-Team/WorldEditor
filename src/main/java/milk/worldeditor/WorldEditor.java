@@ -619,7 +619,7 @@ public class WorldEditor extends PluginBase implements Listener{
                 callback = "copyBlock";
                 params = new Object[]{
                     new Vector3(Math.min(pos1.x, pos2.x), Math.min(pos1.y, pos2.y), Math.min(pos1.z, pos2.z)),
-                    new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z)), ((Player) i).getLevel(), i
+                    new Vector3(Math.max(pos1.x, pos2.x), Math.max(pos1.y, pos2.y), Math.max(pos1.z, pos2.z)), i
                 };
                 this.debugInfo(i.getName() + "님이 블럭 복사를 시작했어요");
                 break;
@@ -644,7 +644,7 @@ public class WorldEditor extends PluginBase implements Listener{
             case "/paste":
                 output += "블럭 붙여넣기를 시작했어요";
                 callback = "pasteBlock";
-                params = new Object[]{((Player) i).floor(), i};
+                params = new Object[]{new Vector3(((Player) i).x, ((Player) i).y, ((Player) i).z), i};
                 this.debugInfo(i.getName() + "님이 블럭 붙여넣기를 시작했어요");
                 break;
         }
