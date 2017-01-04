@@ -7,8 +7,6 @@ import milk.worldeditor.WorldEditor;
 
 public class WorldEditorTask implements Runnable{
 
-    public static WorldEditor object;
-
     private final String method;
     private final Object[] args;
 
@@ -32,7 +30,7 @@ public class WorldEditorTask implements Runnable{
                 }
                 classes[a] = clazz;
             }
-            object.getClass().getMethod(method, classes).invoke(object, args);
+            WorldEditor.getInstance().getClass().getMethod(method, classes).invoke(WorldEditor.getInstance(), args);
         }catch(Exception e){
             e.printStackTrace();
         }

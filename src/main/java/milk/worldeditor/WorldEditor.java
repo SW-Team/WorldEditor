@@ -28,6 +28,8 @@ import java.util.LinkedHashMap;
 
 public class WorldEditor extends PluginBase implements Listener{
 
+    private static WorldEditor instance;
+
     public LinkedHashMap<String, Object> data;
 
     public HashMap<String, Position[]> pos = new HashMap<>();
@@ -38,10 +40,14 @@ public class WorldEditor extends PluginBase implements Listener{
         return (x * x) + (y * y) + (z * z);
     }
 
+    public static WorldEditor getInstance(){
+        return instance;
+    }
+
     @Override
     public void onEnable(){
         this.saveDefaultConfig();
-        WorldEditorTask.object = this;
+        WorldEditor.instance = this;
         this.data = (LinkedHashMap<String, Object>) this.getConfig().getAll();
         this.getServer().getPluginManager().registerEvents(this, this);
         this.getServer().getLogger().info(TextFormat.GOLD + "[WorldEditor]Plugin has been enabled");
